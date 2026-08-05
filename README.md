@@ -1,5 +1,7 @@
 # MathJax Helper
 
+<img width="1326" height="1722" alt="sc 2026-08-05 at 17 18 42" src="https://github.com/user-attachments/assets/dbbef179-55e6-40fb-9901-38b49ef6a9e6" />
+
 An Anki editor add-on for pasting AI chat answers (ChatGPT, Claude, etc.)
 straight into a card. It adds an **Mx** button to the field toolbar that
 scans the active field, wraps anything that looks like LaTeX math in
