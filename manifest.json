@@ -1,0 +1,8 @@
+{
+  "name": "MathJax Helper",
+  "package": "anki_mathjax_helper",
+  "version": "0.1.4",
+  "author": "OpenAI",
+  "description": "Converts LaTeX-looking text in the active Anki field to MathJax without wrapping prose.",
+  "min_point_version": 50
+}
