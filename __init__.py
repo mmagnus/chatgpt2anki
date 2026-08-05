@@ -103,8 +103,11 @@ WHOLE_EQUATION = re.compile(
 # "=" sign at all, e.g. "\sqrt{Np(1-p)}" or "\frac{5000}{351}\approx14.2".
 _KNOWN_LATEX_CMD = (
     r"\\(?:frac|sqrt|binom|sum|prod|int|oint|lim|max|min|sup|inf|log|ln|exp|det|gcd|arg|"
-    r"times|approx|le|ge|neq|cdot|pm|sim|propto|equiv|subset|supset|in|notin|forall|exists|"
-    r"to|infty|cdots|ldots|partial|nabla|hat|bar|vec|"
+    r"times|approx|le|leq|ge|geq|neq|ne|cdot|pm|sim|propto|equiv|subset|supset|in|notin|forall|exists|"
+    r"to|infty|cdots|ldots|dots|partial|nabla|hat|bar|vec|"
+    r"text|mid|Pr|left|right|quad|qquad|"
+    r"rightarrow|Rightarrow|leftarrow|Leftarrow|leftrightarrow|Leftrightarrow|implies|iff|"
+    r"mathbb|mathcal|overline|underline|"
     r"alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|pi|rho|sigma|"
     r"tau|upsilon|phi|chi|psi|omega|"
     r"Gamma|Delta|Theta|Lambda|Xi|Pi|Sigma|Upsilon|Phi|Psi|Omega)(?![A-Za-z])"
@@ -124,6 +127,10 @@ POLISH_LETTERS = re.compile(r"[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]")
 # whole line must not be wrapped -- only the actual equation fragment should be.
 PROSE_WORD = re.compile(r"(?<!\\)\b[A-Za-z]{4,}\b")
 
+# \text{...} exists specifically to embed English words inside math mode
+# (e.g. "P(\text{data}\mid p)"), so words inside it must not count as prose.
+TEXT_ARG = re.compile(r"\\text\{[^{}]*\}")
+
 # A trailing "(...)" comment attached with a space, e.g. 'g = 242,000 ("failures")'
 # -- an aside about the equation, not part of it. No space before "(" (as in
 # "P(X=6)") means the parens are part of the math, so this is left alone.
@@ -131,7 +138,18 @@ TRAILING_ASIDE = re.compile(r"^(.*\S)(\s+)(\([^()]*\))$")
 
 
 def _looks_like_prose(core):
-    return len(PROSE_WORD.findall(core)) >= 2
+    checked = TEXT_ARG.sub("", core)
+    if len(PROSE_WORD.findall(checked)) >= 2:
+        return True
+    # A multi-word left-hand side ("probability of boy = p") is a descriptive
+    # label, not an equation identifier -- real ones are short ("p", "E[X]",
+    # or a LaTeX construct like "\hat p", which is one unit despite the space).
+    eq_pos = checked.find("=")
+    if eq_pos != -1:
+        lhs = checked[:eq_pos]
+        if "\\" not in lhs and len(lhs.split()) >= 2:
+            return True
+    return False
 
 # Signals that a block is source code (e.g. a pasted Python snippet), not an
 # equation, even though "b = 251_000" has the exact same shape as real math.
@@ -225,23 +243,23 @@ def run_mathjax_helper(editor):
     field_index = getattr(editor, "currentField", None)
 
     if field_index is None or field_index < 0:
-        showInfo("Kliknij najpierw w pole karty, a następnie kliknij Mx.")
+        showInfo("Click into a card field first, then click Mx.")
         return
 
     if editor.note is None:
-        showInfo("Nie ma aktywnej notatki do edycji.")
+        showInfo("There is no active note to edit.")
         return
 
     try:
         original = editor.note.fields[field_index]
     except Exception:
-        showInfo("Nie udało się odczytać aktywnego pola.")
+        showInfo("Could not read the active field.")
         return
 
     transformed = transform_field_html(original)
 
     if transformed == original:
-        tooltip("Nie znaleziono nowych fragmentów LaTeX.", period=2200)
+        tooltip("No new LaTeX fragments found.", period=2200)
         return
 
     editor.note.fields[field_index] = transformed
@@ -272,7 +290,7 @@ def run_mathjax_helper(editor):
             except Exception:
                 pass
 
-    tooltip("Przetworzono aktywne pole. Sprawdź wynik.", period=2200)
+    tooltip("Processed the active field. Check the result.", period=2200)
 
 
 def add_mathjax_button(buttons, editor):
@@ -280,7 +298,7 @@ def add_mathjax_button(buttons, editor):
     button = editor._addButton(
         None,
         "mathjax_helper",
-        "Wykryj LaTeX i dodaj znaczniki MathJax",
+        "Detect LaTeX and add MathJax markers",
         label="Mx",
     )
     return buttons + [button]
