@@ -2,7 +2,6 @@
 import html
 import re
 from anki.hooks import addHook
-from aqt import gui_hooks
 from aqt.utils import tooltip, showInfo
 
 MATH_PATTERNS = [
@@ -305,9 +304,4 @@ def add_mathjax_button(buttons, editor):
     return buttons + [button]
 
 
-def add_mathjax_shortcut(cuts, editor):
-    cuts.append(("Ctrl+M", lambda: run_mathjax_helper(editor)))
-
-
 addHook("setupEditorButtons", add_mathjax_button)
-gui_hooks.editor_did_init_shortcuts.append(add_mathjax_shortcut)

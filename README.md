@@ -77,8 +77,7 @@ surrounding prose untouched.
 ## Usage
 
 1. Click into the field you want to fix, in Anki's card editor.
-2. Click the **Mx** button in the field toolbar, or press **Cmd+M**
-   (Ctrl+M on Windows/Linux).
+2. Click the **Mx** button in the field toolbar.
 3. The field is transformed in place and reloaded so you can check the
    result. If nothing looked like new LaTeX, you'll get a "no new LaTeX
    fragments found" notice instead.
